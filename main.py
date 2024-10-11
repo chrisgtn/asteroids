@@ -4,6 +4,8 @@ from player import Player
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
 from shot import Shot
+from explosion import Explosion
+import random
 
 def main():
     
@@ -52,6 +54,20 @@ def main():
     Shot.containers = (shots, updatable, drawable)
     
     
+    def reset_game(player, asteroids, shots, asteroid_field, updatable, drawable):
+        # Reset player position and velocity
+        player.position = pygame.Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+        player.velocity = pygame.Vector2(0, 0)
+
+        # Clear asteroids, shots, and temporarily stop spawning
+        asteroid_field.reset(asteroids, updatable, drawable)
+        shots.empty()  # Clear all shots
+
+        # After a delay, re-enable asteroid spawning
+        pygame.time.set_timer(pygame.USEREVENT + 1, 1500)  # 1.5 second delay to enable spawning
+
+    
+    
     
     
     # Game loop
@@ -61,6 +77,9 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
+            elif event.type == pygame.USEREVENT + 1:
+                asteroid_field.enable_spawning()  # Re-enable spawning after the reset delay
+        
         
         dt = clock.tick(60) / 1000 # milliseconds to seconds // fps = 60
         screen.fill((0,0,0))
@@ -85,10 +104,19 @@ def main():
             if player.collides_with(asteroid):
                 lives -= 1
                 if lives > 0:
+                    
                     # Respawn the player if lives remain
-                    player.position = pygame.Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-                    player.velocity = pygame.Vector2(0, 0)
+                    reset_game(player, asteroids, shots, asteroid_field, updatable, drawable)
+
+                    
                     print(f"Lives left: {lives}")
+                    
+                    # Dim the background 
+                    dim_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+                    dim_surface.set_alpha(128)  # 50% opacity
+                    dim_surface.fill((0, 0, 0))  # Black color
+                    screen.blit(dim_surface, (0, 0)) 
+                    
                     # Display "Lives Left"
                     lives_left_text = font.render(f"Lives Left: {lives}", True, (255, 0, 0))  # Red text for lives left
                     screen.blit(lives_left_text, (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2))
@@ -98,7 +126,15 @@ def main():
                 else:
                     print(f"Score: {score}")
                     print("Game over!")
-                    # Display "Game Over" 
+                    
+                    
+                    # Dim the background 
+                    dim_surface = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+                    dim_surface.set_alpha(128)  # 50% opacity
+                    dim_surface.fill((0, 0, 0))  # Black color
+                    screen.blit(dim_surface, (0, 0)) 
+                    
+                    # Display "Game Over"
                     game_over_text = font.render("Game Over!", True, (255, 0, 0))  # Red text for game over
                     screen.blit(game_over_text, (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2))
                     pygame.display.flip()
@@ -113,11 +149,16 @@ def main():
                     asteroid.split()
                     shot.kill()
                     
+                    # Trigger the explosion at the asteroid's position
+                    explosion = Explosion(asteroid.position.x, asteroid.position.y, max_radius=50)
+                    drawable.add(explosion)
+                    updatable.add(explosion)
+                    
                     score += 1
             
                     break
 
-
+        asteroid_field.update(dt)
 
 
 if __name__ == "__main__":
