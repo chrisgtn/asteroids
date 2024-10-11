@@ -13,6 +13,7 @@ class Player(CircleShape):
         self.player_radius = PLAYER_RADIUS
         self.rotation = 0
         self.shoot_timer = 0
+        self.invincibility_timer = 0  # Timer for invincibility after respawn
     
     # in the player class
     def triangle(self):
@@ -31,6 +32,9 @@ class Player(CircleShape):
         
     def update(self, dt):
         keys = pygame.key.get_pressed()
+        
+        if self.invincibility_timer > 0:
+            self.invincibility_timer -= dt
         
         # decrese shoot timer by dt 
         if self.shoot_timer > 0:

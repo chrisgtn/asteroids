@@ -17,6 +17,10 @@ def main():
     clock = pygame.time.Clock()
     dt = 0 # delta time
     
+    score = 0
+    lives = 5
+    font = pygame.font.SysFont("Arial", 24)
+    
     print("Starting asteroids!")
     print(f"Screen width: {SCREEN_WIDTH}")
     print(f"Screen height: {SCREEN_HEIGHT}")
@@ -64,6 +68,12 @@ def main():
         for obj in drawable:
             obj.draw(screen)
     
+        # Render the score on the screen
+        score_text = font.render(f"Score: {score}", True, (255, 255, 255))  # White text
+        lives_text = font.render(f"Lives: {lives}", True, (255, 255, 255)) 
+        screen.blit(score_text, (10, 10))  # Display the score in the top-left corner
+        screen.blit(lives_text, (10, 40)) 
+        
         # refresh screen for changes
         pygame.display.flip()
         
@@ -73,16 +83,38 @@ def main():
         # check for collisions
         for asteroid in asteroids:
             if player.collides_with(asteroid):
-                print("Game over!")
-                pygame.quit()
-                return
+                lives -= 1
+                if lives > 0:
+                    # Respawn the player if lives remain
+                    player.position = pygame.Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
+                    player.velocity = pygame.Vector2(0, 0)
+                    print(f"Lives left: {lives}")
+                    # Display "Lives Left"
+                    lives_left_text = font.render(f"Lives Left: {lives}", True, (255, 0, 0))  # Red text for lives left
+                    screen.blit(lives_left_text, (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2))
+                    pygame.display.flip()
+                    pygame.time.wait(1500)  # Pause for 1.5 seconds to show the message
+                    
+                else:
+                    print(f"Score: {score}")
+                    print("Game over!")
+                    # Display "Game Over" 
+                    game_over_text = font.render("Game Over!", True, (255, 0, 0))  # Red text for game over
+                    screen.blit(game_over_text, (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2))
+                    pygame.display.flip()
+                    pygame.time.wait(3000)  # Pause for 3 seconds before quitting
+                    pygame.quit()
+                    return
             
             # check collision with shots
             for shot in shots:
                 if asteroid.collides_with(shot):
-                    # remove shot and asteroid
+                    # remove shot and split asteroid
                     asteroid.split()
                     shot.kill()
+                    
+                    score += 1
+            
                     break
 
 
