@@ -1,13 +1,6 @@
 import pygame
 
-
-
-"""CircleShape extends the Sprite class to also store a position, velocity, and radius.
-Later you'll write subclasses of CircleShape and override the draw and 
-update methods with the logic for that particular game object."""
-
-
-
+"""CircleShape extends the Sprite class to also store a position, velocity, and radius."""
 
 # Base class for game objects
 class CircleShape(pygame.sprite.Sprite):
